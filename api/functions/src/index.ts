@@ -1,7 +1,7 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import axios from 'axios';
-import { apiKey, apiSecret, appId } from './constant';
+import { apiKey, apiSecret, billerId } from './constant';
 import { v4 as uuid } from 'uuid';
 
 admin.initializeApp();
@@ -17,7 +17,7 @@ export const login = functions.https.onRequest(async (req, res) => {
         headers: {
             apikey: apiKey,
             apisecret: apiSecret,
-            resourceOwnerId: appId,
+            resourceOwnerId: apiKey,
             requestUId: uuid(),
             'response-channel': 'mobile',
             endState: 'mobile_app',
@@ -53,12 +53,12 @@ export const token = functions.https.onRequest(async (req, res) => {
             .status(response.status)
             .send({ error: response.data.status.description });
     }
-    const token = response.data.data;
+    const tokenInfo = response.data.data;
     response = await axios.get(
         'https://api.partners.scb/partners/sandbox/v1/customers/profile',
         {
             headers: {
-                authorization: `Bearer ${token.accessToken}`,
+                authorization: `Bearer ${tokenInfo.accessToken}`,
                 resourceOwnerId: apiKey,
                 requestUId: uuid(),
                 'accept-language': 'TH',
@@ -70,7 +70,7 @@ export const token = functions.https.onRequest(async (req, res) => {
             .status(response.status)
             .send({ error: response.data.status.description });
     }
-    res.send({ token, ...response.data.data });
+    return res.send({ token: tokenInfo, ...response.data.data });
 });
 
 export const refreshToken = functions.https.onRequest(async (req, res) => {
@@ -104,7 +104,7 @@ export const deeplink = functions.https.onRequest(async (req, res) => {
             headers: {
                 'content-type': 'application/json',
                 authorization: `Bearer ${req.headers.token}`,
-                resourceOwnerId: appId,
+                resourceOwnerId: apiKey,
                 requestUId: uuid(),
                 channel: 'scbeasy',
                 'accept-language': 'TH',
@@ -114,7 +114,7 @@ export const deeplink = functions.https.onRequest(async (req, res) => {
                 transactionType: 'PAYMENT',
                 transactionSubType: 'BPA',
                 ref1: uuid(),
-                accountTo: req.body.accountTo,
+                accountTo: billerId,
             },
         },
     );
