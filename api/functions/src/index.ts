@@ -35,16 +35,16 @@ export const token = functions.https.onRequest(async (req, res) => {
     let response = await axios.post(
         'https://api.partners.scb/partners/sandbox/v1/oauth/token',
         {
+            applicationKey: apiKey,
+            applicationSecret: apiSecret,
+            authCode: req.query.code,
+        },
+        {
             headers: {
                 'content-type': 'application/json',
                 resourceOwnerId: apiKey,
                 requestUId: uuid(),
                 'accept-language': 'TH',
-            },
-            body: {
-                applicationKey: apiKey,
-                applicationSecret: apiSecret,
-                authCode: req.query.code,
             },
         },
     );
@@ -77,16 +77,16 @@ export const refreshToken = functions.https.onRequest(async (req, res) => {
     const { status, data } = await axios.post(
         'https://api.partners.scb/partners/sandbox/v1/oauth/token/refresh',
         {
+            applicationKey: apiKey,
+            applicationSecret: apiSecret,
+            refreshToken: req.body.refreshToken,
+        },
+        {
             headers: {
                 'content-type': 'application/json',
                 resourceOwnerId: apiKey,
                 requestUId: req.query.requestuid,
                 'accept-language': 'TH',
-            },
-            body: {
-                applicationKey: apiKey,
-                applicationSecret: apiSecret,
-                refreshToken: req.body.refreshToken,
             },
         },
     );
@@ -101,6 +101,13 @@ export const deeplink = functions.https.onRequest(async (req, res) => {
     const { status, data } = await axios.post(
         'https://api.partners.scb/partners/sandbox/v2/deeplink/transactions',
         {
+            paymentAmount: req.body.paymentAmount,
+            transactionType: 'PAYMENT',
+            transactionSubType: 'BPA',
+            ref1: uuid(),
+            accountTo: billerId,
+        },
+        {
             headers: {
                 'content-type': 'application/json',
                 authorization: `Bearer ${req.headers.token}`,
@@ -108,13 +115,6 @@ export const deeplink = functions.https.onRequest(async (req, res) => {
                 requestUId: uuid(),
                 channel: 'scbeasy',
                 'accept-language': 'TH',
-            },
-            body: {
-                paymentAmount: req.body.paymentAmount,
-                transactionType: 'PAYMENT',
-                transactionSubType: 'BPA',
-                ref1: uuid(),
-                accountTo: billerId,
             },
         },
     );
